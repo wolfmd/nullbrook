@@ -53,7 +53,7 @@ def write_new_entry(title, description, link, input_file):
 
         print ET.tostring(channel, pretty_print=True, xml_declaration=True)
         tree = ET.ElementTree(channel)
-        feed.close()
+        feed.close()https://www.sub.fm/
 
     with open(input_file, 'w') as feed:
         tree.write(feed, pretty_print=True, xml_declaration=True)
@@ -81,22 +81,22 @@ parser_feedgen.add_argument('-l','--link',
 parser_feedgen.add_argument('-o','--output_file', help='the output file, defaults to \'feed.xml\'', default='feed.xml')
 
 #Entry command
-parser_feedgen = subparsers.add_parser('entry',
+parser_entry = subparsers.add_parser('entry',
                                         help='entry [-t, --title TITLE] '
                                         '[-d, --description DESC]'
                                         '[-l, --link LINK]'
                                         '[-i, --input_file INPUT_FILE]')
-parser_feedgen.add_argument('-t',
+parser_entry.add_argument('-t',
                             '--title',
                             help='-t: title the title of the feed entry',
                             required=True)
-parser_feedgen.add_argument('-d','--description',
+parser_entry.add_argument('-d','--description',
                             help='the description of feed entry',
                             required=True)
-parser_feedgen.add_argument('-l','--link',
+parser_entry.add_argument('-l','--link',
                             help='the link for the feed entry',
                             required=True)
-parser_feedgen.add_argument('-i','--input_file',
+parser_entry.add_argument('-i','--input_file',
                             help='the input XML file',
                             required=True)
 
