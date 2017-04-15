@@ -43,68 +43,6 @@ def get_content_from_file(input_file):
     return title, content, link
 
 
-#<?xml version='1.0' encoding='ASCII'?>
-# <rss version="2.0">
-#   <channel>
-#     <title>wolfmd.me</title>
-#     <link>https://wolfmd.me/feed.xml</link>
-#     <description>Technology, archives, music, ???</description>
-#     <lastBuildDate>Mon, 10 Apr 2017 21:44:03 GMT</lastBuildDate>
-#     <generator>PyRSS2Gen-1.1.0</generator>
-#     <docs>http://blogs.law.harvard.edu/tech/rss</docs>
-#     <item>
-#       <title>The Secret (of Yahoo)</title>
-#       <link>https://wolfmd.me/blog/the-secret-scared-by-a-scraper-phisher.html</link>
-#       <description>In early 2016, my friend reached out to me with what seemed to be an interesting little puzzle. She began receiving a slew of emails. The emails were pretty clearly broad-targetted phishing scams and all directed at her AOL email address. over the course of a few months, she got maybe twenty-five emails, nearly identical but from unique addresses all from the Yahoo domain.</description>
-#     </item>
-#     <item>
-#       <title>There's A Demon In My GPG Key</title>
-#       <link>https://wolfmd.me/blog/theres-a-demon-in-my-gpg-pub-key.html</link>
-#       <description>This is arguably an odd way to start off this blog and I doubt I'll be able to bring myself to regularly update this, but I stumbled a nice little late-night surprise on my quest to set up an email server.</description>
-#     </item>
-#   </channel>
-#</rss>
-
-
-
-
-# def write_new_file(title, description, link, output_file):
-#     rss = PyRSS2Gen.RSS2(
-#     title = title,
-#     link = link,
-#     description = description,
-#     lastBuildDate = datetime.datetime.now(),
-#
-#     items = [
-#     ])
-#
-#     rss.write_xml(open("feed.xml", "w"))
-#
-# def write_new_entry(title, description, link, input_file):
-#     tree = ''
-#     with open(input_file, 'r') as feed:
-#         parser = ET.XMLParser(remove_blank_text=True)
-#         tree = ET.parse(input_file, parser)
-#         channel = tree.getroot()
-#         item = ET.SubElement(channel, "item")
-#         xmltitle = ET.SubElement(item, "title")
-#         xmltitle.text = title
-#         xmllink = ET.SubElement(item, "link")
-#         xmllink.text = link
-#         xmldescription = ET.SubElement(item, "description")
-#         xmldescription.text = description
-#
-#         channel.find(".//docs").addnext(item)
-#
-#         print ET.tostring(channel, pretty_print=True, xml_declaration=True)
-#         tree = ET.ElementTree(channel)
-#         feed.close()https://www.sub.fm/
-#
-#     with open(input_file, 'w') as feed:
-#         tree.write(feed, pretty_print=True, xml_declaration=True)
-#         feed.close()
-
-
 parser = argparse.ArgumentParser(description='Send something sweet to your friends at Tumblahoo?', prog='rss-to-tumblr.py')
 
 parser.add_argument('-t','--title',
