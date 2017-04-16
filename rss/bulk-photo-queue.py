@@ -37,7 +37,7 @@ def load_database(database_file):
             choice = raw_input(">")
             if str(choice.lower()) == "y":
                 with open("prev.json", 'w') as d:
-                    d.write("{}")
+                    d.write("[]")
                 previously_posted_files = []
                 database_file = "prev.json"
                 break
@@ -51,47 +51,40 @@ def load_database(database_file):
     return previously_posted_files, database_file
 
 def get_file_info(files, previously_posted_files, directory):
+    # Generate a list of all files in a directory. Done once
     if not files:
         files = [os.path.join(path, filename)
              for path, dirs, files in os.walk(directory)
              for filename in files]
-        print "You should only see me once"
-    chosen_file = random.choice(files)
+
+    while True:
+        files_set = set(files)
+        print files_set
+        chosen_file = random.choice(files)
+        choice_set = set(chosen_file)
+        print chosen_file
+        if not choice_set in files_set:
+            break
     #test_set=set(test_list)
-    print chosen_file
-    return "fuck", "fuck", "fuck", "fuck", files
+    filename = chosen_file.split('/')[-1]
+    lot = chosen_file.split('/')[-2]
+    fullname = urllib2.quote(chosen_file.encode("utf8"))
+    previously_posted_files.append(chosen_file)
+    return previously_posted_files, filename, fullname, lot, files
 
 def send_to_tumblr(consumer_key, consumer_secret, oauth_key, oauth_secret, title, content, link, tags):
-    print "test"
+    print "title: %s" % title
+    print "caption: %s" % content
+    print "link: %s" % link
+    print "tags: %s" % tags
     # client = pytumblr.TumblrRestClient(consumer_key,consumer_secret,oauth_key,oauth_secret)
     # Just a little nastiness to prevent some nastiness
     # slug = urllib2.quote(title.translate(None, '-'.join(' ')).encode("utf8"))
     # client.create_text("boxesofoldphotos", state="queue", slug=slug, title=title, body="%s <a href=\"%s\"><br>Read the rest of this post on Nullbrook.org</a>" % (content,link))
 
-
-
-def get_content_from_file(input_file):
-    with open(input_file, 'r') as feed:
-        parser = ET.XMLParser(remove_blank_text=True)
-        tree = ET.parse(input_file, parser)
-        channel = tree.getroot()
-        for item in channel.iter('item'):
-            title = item.find('title').text
-            content = item.find('description').text
-            link = item.find('link').text
-            break
-
-    return title, content, link
-
-
-#                               -n, --number NUMBER default: 1
-#                               -d, --directory DIRECTORY
-#                               -t, --title TITLE [OPTIONAL]
-#                               -d, --description DESC [OPTIONAL]
-#                               -k, --consumer-key CONSUMER_KEY
-#                               -c, --consumer-secret CONSUMER_SECRET
-#                               -o, --oauth OAUTH
-#                               -s, --secret SECRET
+def update_database(previously_posted_files, database):
+    with open(database, 'w') as f:
+        f.write(json.dumps(previously_posted_files))
 
 parser = argparse.ArgumentParser(description='Queue up posts and avoid Tumblr\'s awful GUI', prog='bulk-photo-queue.py')
 
@@ -138,8 +131,8 @@ for index in range(args.rotations):
     previously_posted_files, filename, fullname, lot, files = get_file_info(files, previously_posted_files, args.directory)
     title = args.title if args.title else filename
     content = args.post if args.post else filename
-    tags = [lot, "old photo"]
-    link = fullname
+    tags = ["%sLot" % lot , "old photo"]
+    link = "ftp://nullbrook.org/Old%20Photos/" + fullname
 
     print "Posting the following message to Tumblr: \n%s\n%s\n%s" % (title, content, link)
     send_to_tumblr( args.consumer_key,
@@ -151,11 +144,5 @@ for index in range(args.rotations):
                     link,
                     tags
                 )
-# Pick a file
-#
 
-
-
-print title, content
-
-update_database(previously_posted_files)
+update_database(previously_posted_files, database)
