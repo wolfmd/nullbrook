@@ -75,13 +75,13 @@ def get_file_info(files, previously_posted_files, directory, rotations):
     filename = chosen_file.split('/')[-1]
     lot = chosen_file.split('/')[-2]
     fullname = urllib2.quote(chosen_file.encode("utf8"))
-    return previously_posted_files, filename, fullname, lot, files
+    return previously_posted_files, filename, fullname, lot, files, chosen_file
 
-def send_to_tumblr(consumer_key, consumer_secret, oauth_key, oauth_secret, content, link, title, tags, fullname):
+def send_to_tumblr(consumer_key, consumer_secret, oauth_key, oauth_secret, content, link, title, tags, chosen_file):
     client = pytumblr.TumblrRestClient(consumer_key,consumer_secret,oauth_key,oauth_secret)
     # Just a little nastiness to prevent some nastiness
     slug = urllib2.quote(title.translate(None, '-'.join(' ')).encode("utf8"))
-    client.create_photo("boxesofoldphotos", state="queue", slug=slug, caption=content, source=link, data=fullname, tags=tags)
+    client.create_photo("boxesofoldphotos", state="queue", slug=slug, caption=content, data=chosen_file, tags=tags)
 
 def update_database(previously_posted_files, database):
     with open(database, 'w') as f:
@@ -127,7 +127,7 @@ previously_posted_files, database = load_database(database)
 files = []
 
 for index in range(args.rotations):
-    previously_posted_files, filename, fullname, lot, files = get_file_info(files, previously_posted_files, args.directory, args.rotations)
+    previously_posted_files, filename, fullname, lot, files, chosen_file = get_file_info(files, previously_posted_files, args.directory, args.rotations)
     title = filename.split(".")[0]
     link = "ftp://nullbrook.org/Old%20Photos/" + fullname
     content = args.post if args.post else "%s<br><a href=\"%s\">View at Nullbrook</a>" % (filename, link)
@@ -142,7 +142,7 @@ for index in range(args.rotations):
                     link,
                     title,
                     tags,
-		    fullname
+		    chosen_file
                 )
 
 update_database(previously_posted_files, database)
