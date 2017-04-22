@@ -129,8 +129,8 @@ files = []
 for index in range(args.rotations):
     previously_posted_files, filename, fullname, lot, files, chosen_file = get_file_info(files, previously_posted_files, args.directory, args.rotations)
     title = filename.split(".")[0]
-    link = "ftp://nullbrook.org/Old%20Photos/" + fullname
-    content = args.post if args.post else "%s<br><a href=\"%s\">View at Nullbrook</a>" % (filename, link)
+    link = "ftp://nullbrook.org/" + fullname[8:]
+    content = args.post if args.post else "%s<br><a href=\"%s\">View at Nullbrook</a>" % (filename.split(".")[0], link)
     tags = ["%sLot" % lot , "old photo"]
 
     print "Posting the following message to Tumblr: \n%s\n%s\n%s" % (title, content, link)
