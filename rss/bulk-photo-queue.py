@@ -10,7 +10,6 @@
 # Usage ./bulk-photo-queue.py
 #                               -n, --number NUMBER default: 1
 #                               -d, --directory DIRECTORY
-#                               -t, --title TITLE [OPTIONAL]
 #                               -p, --post POST [OPTIONAL]
 #                               -k, --consumer-key CONSUMER_KEY
 #                               -c, --consumer-secret CONSUMER_SECRET
@@ -24,6 +23,7 @@ import os
 import pytumblr
 import random
 import sys
+import time
 import json
 import urllib2
 
@@ -50,37 +50,38 @@ def load_database(database_file):
                 print "I didn't understand what you said, I'm just going to ignore that."
     return previously_posted_files, database_file
 
-def get_file_info(files, previously_posted_files, directory):
+def get_file_info(files, previously_posted_files, directory, rotations):
     # Generate a list of all files in a directory. Done once
     if not files:
         files = [os.path.join(path, filename)
              for path, dirs, files in os.walk(directory)
              for filename in files]
-
-    while True:
-        files_set = set(files)
-        print files_set
+        if rotations > len(files):
+            print "ERROR: Not enough unused photos in the directory. Enter a new number or erase the prev.json file."
+            sys.exit()
+    looking_for_file = True
+    while looking_for_file is True:
         chosen_file = random.choice(files)
-        choice_set = set(chosen_file)
-        print chosen_file
-        if not choice_set in files_set:
+        previous_set = set(previously_posted_files)
+        if not chosen_file in previous_set:
+            previously_posted_files.append(chosen_file)
+            looking_for_file = False
             break
+        else:
+            print "Maybe you're out of photos, bub"
+            time.sleep(10)
+
     #test_set=set(test_list)
     filename = chosen_file.split('/')[-1]
     lot = chosen_file.split('/')[-2]
     fullname = urllib2.quote(chosen_file.encode("utf8"))
-    previously_posted_files.append(chosen_file)
     return previously_posted_files, filename, fullname, lot, files
 
-def send_to_tumblr(consumer_key, consumer_secret, oauth_key, oauth_secret, title, content, link, tags):
-    print "title: %s" % title
-    print "caption: %s" % content
-    print "link: %s" % link
-    print "tags: %s" % tags
-    # client = pytumblr.TumblrRestClient(consumer_key,consumer_secret,oauth_key,oauth_secret)
+def send_to_tumblr(consumer_key, consumer_secret, oauth_key, oauth_secret, content, link, title, tags, fullname):
+    client = pytumblr.TumblrRestClient(consumer_key,consumer_secret,oauth_key,oauth_secret)
     # Just a little nastiness to prevent some nastiness
-    # slug = urllib2.quote(title.translate(None, '-'.join(' ')).encode("utf8"))
-    # client.create_text("boxesofoldphotos", state="queue", slug=slug, title=title, body="%s <a href=\"%s\"><br>Read the rest of this post on Nullbrook.org</a>" % (content,link))
+    slug = urllib2.quote(title.translate(None, '-'.join(' ')).encode("utf8"))
+    client.create_photo("boxesofoldphotos", state="queue", slug=slug, caption=content, source=link, data=fullname, tags=tags)
 
 def update_database(previously_posted_files, database):
     with open(database, 'w') as f:
@@ -88,9 +89,7 @@ def update_database(previously_posted_files, database):
 
 parser = argparse.ArgumentParser(description='Queue up posts and avoid Tumblr\'s awful GUI', prog='bulk-photo-queue.py')
 
-parser.add_argument('-t','--title',
-                            help='title of the post to be created',
-                            required=False)
+
 parser.add_argument('-p','--post',
                             help='the content of the post to be created',
                             required=False)
@@ -128,21 +127,22 @@ previously_posted_files, database = load_database(database)
 files = []
 
 for index in range(args.rotations):
-    previously_posted_files, filename, fullname, lot, files = get_file_info(files, previously_posted_files, args.directory)
-    title = args.title if args.title else filename
-    content = args.post if args.post else filename
-    tags = ["%sLot" % lot , "old photo"]
+    previously_posted_files, filename, fullname, lot, files = get_file_info(files, previously_posted_files, args.directory, args.rotations)
+    title = filename.split(".")[0]
     link = "ftp://nullbrook.org/Old%20Photos/" + fullname
+    content = args.post if args.post else "%s<br><a href=\"%s\">View at Nullbrook</a>" % (filename, link)
+    tags = ["%sLot" % lot , "old photo"]
 
     print "Posting the following message to Tumblr: \n%s\n%s\n%s" % (title, content, link)
     send_to_tumblr( args.consumer_key,
                     args.consumer_secret,
                     args.oauth_key,
                     args.oauth_secret,
-                    title,
                     content,
                     link,
-                    tags
+                    title,
+                    tags,
+		    fullname
                 )
 
 update_database(previously_posted_files, database)
